@@ -114,6 +114,23 @@ public class NotificationJob {
                 .build();
     }
 
+    public NotificationJob retryFailed() {
+        ensureStatus(
+                NotificationJobStatus.FAILED,
+                "Only FAILED jobs can be retried"
+        );
+
+        LocalDateTime now = LocalDateTime.now();
+
+        return toBuilder()
+                .status(NotificationJobStatus.PENDING)
+                .lockedAt(null)
+                .processedAt(null)
+                .lastError(null)
+                .updatedAt(now)
+                .build();
+    }
+
     private void ensureStatus(NotificationJobStatus expectedStatus, String message) {
         if (status != expectedStatus) {
             throw new IllegalStateException(message + ". Current status: " + status);
