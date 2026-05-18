@@ -56,6 +56,28 @@ public class NotificationJob {
         return value;
     }
 
+    private static int validateAttemptCount(int attemptCount) {
+        if (attemptCount < 0) {
+            throw new IllegalArgumentException("attemptCount must not be negative");
+        }
+
+        return attemptCount;
+    }
+
+    private static String truncateError(String errorMessage) {
+        if (errorMessage == null) {
+            return null;
+        }
+
+        return errorMessage.length() <= MAX_ERROR_LENGTH
+                ? errorMessage
+                : errorMessage.substring(0, MAX_ERROR_LENGTH);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public NotificationJob markProcessing() {
         ensureStatus(NotificationJobStatus.PENDING, "Only PENDING jobs can be marked as PROCESSING");
 
@@ -160,24 +182,6 @@ public class NotificationJob {
         }
     }
 
-    private static int validateAttemptCount(int attemptCount) {
-        if (attemptCount < 0) {
-            throw new IllegalArgumentException("attemptCount must not be negative");
-        }
-
-        return attemptCount;
-    }
-
-    private static String truncateError(String errorMessage) {
-        if (errorMessage == null) {
-            return null;
-        }
-
-        return errorMessage.length() <= MAX_ERROR_LENGTH
-                ? errorMessage
-                : errorMessage.substring(0, MAX_ERROR_LENGTH);
-    }
-
     public Builder toBuilder() {
         return builder()
                 .id(id)
@@ -193,15 +197,13 @@ public class NotificationJob {
                 .updatedAt(updatedAt);
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
     public Long getId() {
         return id;
     }
 
-    public String getCorrelationId() { return correlationId;}
+    public String getCorrelationId() {
+        return correlationId;
+    }
 
     public Long getMessageId() {
         return messageId;

@@ -19,8 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JpaNotificationJobRepositoryAdapterTest {
@@ -32,6 +31,41 @@ class JpaNotificationJobRepositoryAdapterTest {
     private SpringDataCategoryRepository categoryRepository;
 
     private JpaNotificationJobRepositoryAdapter adapter;
+
+    private static NotificationJobEntity notificationJobEntity(
+            Long id,
+            String correlationId,
+            String status
+    ) {
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime lockedAt = status.equals("PENDING") ? null : now;
+        LocalDateTime processedAt = status.equals("PROCESSED") || status.equals("FAILED") ? now : null;
+        String lastError = status.equals("FAILED") ? "Provider unavailable" : null;
+
+        return new NotificationJobEntity(
+                id,
+                correlationId,
+                100L,
+                categoryEntity(),
+                status,
+                status.equals("PENDING") ? 0 : 1,
+                lockedAt,
+                processedAt,
+                lastError,
+                now,
+                now
+        );
+    }
+
+    private static CategoryEntity categoryEntity() {
+        return new CategoryEntity(
+                (short) 1,
+                "SPORTS",
+                "Sports",
+                true
+        );
+    }
 
     @BeforeEach
     void setUp() {
@@ -77,7 +111,6 @@ class JpaNotificationJobRepositoryAdapterTest {
         assertThat(savedJob.getStatus()).isEqualTo(NotificationJobStatus.PENDING);
     }
 
-
     @Test
     void shouldFindPendingJobsForProcessing() {
         // given
@@ -87,11 +120,11 @@ class JpaNotificationJobRepositoryAdapterTest {
                 "PENDING"
         );
 
-        when(notificationJobRepository.findPendingJobsForProcessing(20))
-                .thenReturn(List.of(pendingEntity));
+        when(notificationJobRepository.findPendingJobIdsForProcessing(20))
+                .thenReturn(List.of(10L));
 
-        when(notificationJobRepository.findByIdWithCategory(10L))
-                .thenReturn(Optional.of(pendingEntity));
+        when(notificationJobRepository.findAllByIdInWithCategory(List.of(10L)))
+                .thenReturn(List.of(pendingEntity));
 
         // when
         List<NotificationJob> jobs = adapter.findPendingJobsForProcessing(20);
@@ -124,37 +157,67 @@ class JpaNotificationJobRepositoryAdapterTest {
         assertThat(job.orElseThrow().getStatus()).isEqualTo(NotificationJobStatus.PROCESSED);
     }
 
-    private static NotificationJobEntity notificationJobEntity(
-            Long id,
-            String correlationId,
-            String status
-    ) {
-        LocalDateTime now = LocalDateTime.now();
-
-        LocalDateTime lockedAt = status.equals("PENDING") ? null : now;
-        LocalDateTime processedAt = status.equals("PROCESSED") ? now : null;
-
-        return new NotificationJobEntity(
-                id,
-                correlationId,
-                100L,
-                categoryEntity(),
-                status,
-                status.equals("PENDING") ? 0 : 1,
-                lockedAt,
-                processedAt,
-                null,
-                now,
-                now
+    @Test
+    void shouldFindStaleProcessingJobs() {
+        // given
+        NotificationJobEntity processingEntity = notificationJobEntity(
+                10L,
+                "job-adapter-correlation",
+                "PROCESSING"
         );
+
+        when(notificationJobRepository.findStaleProcessingJobIds(5, 20))
+                .thenReturn(List.of(10L));
+
+        when(notificationJobRepository.findAllByIdInWithCategory(List.of(10L)))
+                .thenReturn(List.of(processingEntity));
+
+        // when
+        List<NotificationJob> jobs = adapter.findStaleProcessingJobs(5, 20);
+
+        // assert
+        assertThat(jobs).hasSize(1);
+        assertThat(jobs.get(0).getId()).isEqualTo(10L);
+        assertThat(jobs.get(0).getStatus()).isEqualTo(NotificationJobStatus.PROCESSING);
+        assertThat(jobs.get(0).getCategory()).isEqualTo(CategoryCode.SPORTS);
     }
 
-    private static CategoryEntity categoryEntity() {
-        return new CategoryEntity(
-                (short) 1,
-                "SPORTS",
-                "Sports",
-                true
+    @Test
+    void shouldReturnEmptyListWhenNoPendingJobsAreFound() {
+        // given
+        when(notificationJobRepository.findPendingJobIdsForProcessing(20))
+                .thenReturn(List.of());
+
+        // when
+        List<NotificationJob> jobs = adapter.findPendingJobsForProcessing(20);
+
+        // assert
+        assertThat(jobs).isEmpty();
+        verify(notificationJobRepository, never()).findAllByIdInWithCategory(anyList());
+    }
+
+    @Test
+    void shouldFindRetryableFailedJobs() {
+        // given
+        NotificationJobEntity failedEntity = notificationJobEntity(
+                10L,
+                "job-adapter-correlation",
+                "FAILED"
         );
+
+        when(notificationJobRepository.findRetryableFailedJobIds(3, 20))
+                .thenReturn(List.of(10L));
+
+        when(notificationJobRepository.findAllByIdInWithCategory(List.of(10L)))
+                .thenReturn(List.of(failedEntity));
+
+        // when
+        List<NotificationJob> jobs = adapter.findRetryableFailedJobs(3, 20);
+
+        // assert
+        assertThat(jobs).hasSize(1);
+        assertThat(jobs.get(0).getId()).isEqualTo(10L);
+        assertThat(jobs.get(0).getStatus()).isEqualTo(NotificationJobStatus.FAILED);
+        assertThat(jobs.get(0).getCategory()).isEqualTo(CategoryCode.SPORTS);
     }
 }
