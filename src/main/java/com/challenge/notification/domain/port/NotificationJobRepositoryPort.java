@@ -12,4 +12,6 @@ public interface NotificationJobRepositoryPort {
     Optional<NotificationJob> findById(Long id);
 
     List<NotificationJob> findPendingJobsForProcessing(int limit);
+
+    List<NotificationJob> findStaleProcessingJobs(int timeoutMinutes, int limit);
 }

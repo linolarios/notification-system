@@ -60,6 +60,17 @@ public class JpaNotificationJobRepositoryAdapter implements NotificationJobRepos
                 .toList();
     }
 
+    @Override
+    public List<NotificationJob> findStaleProcessingJobs(int timeoutMinutes, int limit) {
+        return notificationJobRepository.findStaleProcessingJobs(timeoutMinutes, limit)
+                .stream()
+                .map(NotificationJobEntity::getId)
+                .map(notificationJobRepository::findByIdWithCategory)
+                .flatMap(Optional::stream)
+                .map(notificationJobPersistenceMapper::toDomain)
+                .toList();
+    }
+
     private @NonNull Stream<Optional<NotificationJobEntity>> fetchPendingNotificationJobs(int limit) {
         return notificationJobRepository.findPendingJobsForProcessing(limit)
                 .stream()

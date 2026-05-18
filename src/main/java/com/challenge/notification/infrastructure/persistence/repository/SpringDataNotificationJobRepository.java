@@ -42,4 +42,22 @@ public interface SpringDataNotificationJobRepository extends JpaRepository<Notif
             nativeQuery = true
     )
     List<NotificationJobEntity> findPendingJobsForProcessing(int limit);
+
+    @Query(
+            value = """
+                    SELECT *
+                    FROM notification_jobs
+                    WHERE status = 'PROCESSING'
+                      AND locked_at < CURRENT_TIMESTAMP - (:timeoutMinutes * INTERVAL '1 minute')
+                    ORDER BY locked_at ASC
+                    LIMIT :limit
+                    FOR UPDATE SKIP LOCKED
+                    """,
+            nativeQuery = true
+    )
+    List<NotificationJobEntity> findStaleProcessingJobs(
+            int timeoutMinutes,
+            int limit
+    );
+
 }

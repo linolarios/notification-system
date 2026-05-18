@@ -97,6 +97,23 @@ public class NotificationJob {
                 .build();
     }
 
+    public NotificationJob resetToPendingForRetry() {
+        ensureStatus(
+                NotificationJobStatus.PROCESSING,
+                "Only PROCESSING jobs can be reset to PENDING"
+        );
+
+        LocalDateTime now = LocalDateTime.now();
+
+        return toBuilder()
+                .status(NotificationJobStatus.PENDING)
+                .lockedAt(null)
+                .processedAt(null)
+                .lastError(null)
+                .updatedAt(now)
+                .build();
+    }
+
     private void ensureStatus(NotificationJobStatus expectedStatus, String message) {
         if (status != expectedStatus) {
             throw new IllegalStateException(message + ". Current status: " + status);

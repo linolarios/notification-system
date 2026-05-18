@@ -29,10 +29,14 @@ notification:
   queue:
     type: database
     capacity: 1000
-    processing-mode: DB # 2 options databse or memory, when databse is selected, the queue will be persisted in DB
+    processing-mode: database # 2 options databse or memory, when databse is selected, the queue will be persisted in DB
   worker:
-    fixed-delay-ms: 1000
-    batch-size: 20
+  enabled: true
+  fixed-delay-ms: 1000
+  batch-size: 20
+  stale-timeout-minutes: 5
+  recovery-fixed-delay-ms: 30000
+  recovery-batch-size: 20
 
 logging:
   pattern:
