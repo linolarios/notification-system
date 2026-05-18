@@ -10,9 +10,15 @@ spring:
 
 notification:
   worker:
-    enabled: false
+  enabled: false
     batch-size: 20
     fixed-delay-ms: 1000
+    stale-timeout-minutes: 5
+    recovery-fixed-delay-ms: 30000
+    recovery-batch-size: 20
+    retry-fixed-delay-ms: 60000
+    retry-batch-size: 20
+    retry-max-attempts: 3
   queue:
     processing-mode: database
 
