@@ -7,4 +7,8 @@ public class UnsupportedNotificationChannelException extends RuntimeException {
     public UnsupportedNotificationChannelException(NotificationChannelCode channel) {
         super("Unsupported notification channel: " + channel);
     }
+
+    public UnsupportedNotificationChannelException(String channel) {
+        super("Unsupported notification channel: " + channel);
+    }
 }

@@ -1,8 +1,9 @@
-package com.challenge.notification.web.controller;
+package com.challenge.notification.web.controller.controller;
 
 import com.challenge.notification.application.NotificationQueryService;
 import com.challenge.notification.dto.response.NotificationLogResponse;
 import com.challenge.notification.dto.response.PagedResponse;
+import com.challenge.notification.web.controller.NotificationLogController;
 import com.challenge.notification.web.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
