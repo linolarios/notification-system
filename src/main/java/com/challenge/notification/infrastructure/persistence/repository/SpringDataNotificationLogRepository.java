@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SpringDataNotificationLogRepository extends JpaRepository<NotificationLogEntity, Long> {
+
     Page<NotificationLogEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     Page<NotificationLogEntity> findByCorrelationIdOrderByCreatedAtDesc(String correlationId, Pageable pageable);

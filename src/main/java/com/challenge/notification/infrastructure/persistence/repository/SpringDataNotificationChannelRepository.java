@@ -8,8 +8,6 @@ import java.util.Optional;
 
 public interface SpringDataNotificationChannelRepository extends JpaRepository<NotificationChannelEntity, Short> {
 
-    Optional<NotificationChannelEntity> findByCode(String code);
-
     Optional<NotificationChannelEntity> findByCodeAndActiveTrue(String code);
 
     List<NotificationChannelEntity> findAllByActiveTrueOrderByNameAsc();
