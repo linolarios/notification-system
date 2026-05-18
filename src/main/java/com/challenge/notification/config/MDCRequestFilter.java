@@ -21,11 +21,7 @@ public class MDCRequestFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        String correlationId = request.getHeader(CorrelationConstants.CORRELATION_ID_HEADER);
-
-        if (correlationId == null || correlationId.isBlank()) {
-            correlationId = UUID.randomUUID().toString();
-        }
+        String correlationId = getCorrelationId(request);
 
         try {
             MDC.put(CorrelationConstants.CORRELATION_ID_MDC_KEY, correlationId);
@@ -34,5 +30,14 @@ public class MDCRequestFilter extends OncePerRequestFilter {
         } finally {
             MDC.remove(CorrelationConstants.CORRELATION_ID_MDC_KEY);
         }
+    }
+
+    private static String getCorrelationId(HttpServletRequest request) {
+        String correlationId = request.getHeader(CorrelationConstants.CORRELATION_ID_HEADER);
+
+        if (correlationId == null || correlationId.isBlank()) {
+           return UUID.randomUUID().toString();
+        }
+        return correlationId;
     }
 }

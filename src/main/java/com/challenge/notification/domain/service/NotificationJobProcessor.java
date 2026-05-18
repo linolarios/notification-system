@@ -58,9 +58,9 @@ public class NotificationJobProcessor {
     @Transactional
     public void processLockedPendingJob(NotificationJob job) {
         NotificationJob processingJob = null;
-        MDC.put(CorrelationConstants.CORRELATION_ID_MDC_KEY, job.getCorrelationId());
 
         try {
+            MDC.put(CorrelationConstants.CORRELATION_ID_MDC_KEY, job.getCorrelationId());
             processingJob = notificationJobRepositoryPort.save(job.markProcessing());
 
             final Long jobId = processingJob.getId();
