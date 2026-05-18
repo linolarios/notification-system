@@ -1,4 +1,4 @@
-package com.challenge.notification.domain.service;
+package com.challenge.notification.domain.service.service2;
 
 import com.challenge.notification.domain.model.CategoryCode;
 import com.challenge.notification.domain.model.NotificationChannelCode;
@@ -9,6 +9,9 @@ import com.challenge.notification.domain.model.NotificationStatus;
 import com.challenge.notification.domain.model.NotificationSubscriber;
 import com.challenge.notification.domain.port.NotificationLogRepositoryPort;
 import com.challenge.notification.domain.port.NotificationSender;
+import com.challenge.notification.domain.service.NotificationDeliveryAttemptFactory;
+import com.challenge.notification.domain.service.NotificationDispatcher;
+import com.challenge.notification.domain.service.NotificationSenderRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

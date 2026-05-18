@@ -1,9 +1,11 @@
-package com.challenge.notification.domain.service;
+package com.challenge.notification.domain.service.service2;
 
 import com.challenge.notification.domain.model.*;
 import com.challenge.notification.domain.port.MessageRepositoryPort;
 import com.challenge.notification.domain.port.NotificationJobRepositoryPort;
 import com.challenge.notification.domain.port.NotificationSubscriberRepositoryPort;
+import com.challenge.notification.domain.service.NotificationDispatcher;
+import com.challenge.notification.domain.service.NotificationJobProcessor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

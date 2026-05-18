@@ -1,4 +1,4 @@
-package com.challenge.notification.domain.service;
+package com.challenge.notification.domain.service.service2;
 
 import com.challenge.notification.domain.exception.UnsupportedNotificationChannelException;
 import com.challenge.notification.domain.model.NotificationChannelCode;
@@ -6,6 +6,7 @@ import com.challenge.notification.domain.model.NotificationMessage;
 import com.challenge.notification.domain.model.NotificationSendResult;
 import com.challenge.notification.domain.model.NotificationSubscriber;
 import com.challenge.notification.domain.port.NotificationSender;
+import com.challenge.notification.domain.service.NotificationSenderRegistry;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

@@ -1,0 +1,22 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+notification:
+  worker:
+    enabled: false
+    batch-size: 20
+    fixed-delay-ms: 1000
+  queue:
+    processing-mode: database
+
+logging:
+  level:
+    com.challenge.notification: INFO
+    org.hibernate.SQL: WARN
