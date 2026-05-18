@@ -38,13 +38,17 @@ public class JpaNotificationJobRepositoryAdapter implements NotificationJobRepos
 
         NotificationJobEntity newEntity = notificationJobPersistenceMapper.toEntity(job, categoryEntity);
         NotificationJobEntity savedEntity = notificationJobRepository.save(newEntity);
+        NotificationJobEntity savedEntityWithCategory = notificationJobRepository.findByIdWithCategory(savedEntity.getId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Notification job not found after save: " + savedEntity.getId()
+                ));
 
-        return notificationJobPersistenceMapper.toDomain(savedEntity);
+        return notificationJobPersistenceMapper.toDomain(savedEntityWithCategory);
     }
 
     @Override
     public Optional<NotificationJob> findById(Long id) {
-        return notificationJobRepository.findById(id)
+        return notificationJobRepository.findByIdWithCategory(id)
                 .map(notificationJobPersistenceMapper::toDomain);
     }
 
