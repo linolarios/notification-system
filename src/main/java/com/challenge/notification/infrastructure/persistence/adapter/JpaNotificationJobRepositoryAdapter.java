@@ -7,12 +7,11 @@ import com.challenge.notification.infrastructure.persistence.entity.Notification
 import com.challenge.notification.infrastructure.persistence.mapper.NotificationJobPersistenceMapper;
 import com.challenge.notification.infrastructure.persistence.repository.SpringDataCategoryRepository;
 import com.challenge.notification.infrastructure.persistence.repository.SpringDataNotificationJobRepository;
-import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Repository
 public class JpaNotificationJobRepositoryAdapter implements NotificationJobRepositoryPort {
@@ -54,27 +53,34 @@ public class JpaNotificationJobRepositoryAdapter implements NotificationJobRepos
 
     @Override
     public List<NotificationJob> findPendingJobsForProcessing(int limit) {
-        return fetchPendingNotificationJobs(limit)
-                .flatMap(Optional::stream)
-                .map(notificationJobPersistenceMapper::toDomain)
-                .toList();
+        List<Long> jobIds = notificationJobRepository.findPendingJobIdsForProcessing(limit);
+        return findJobsByIdsWithCategory(jobIds);
     }
 
     @Override
     public List<NotificationJob> findStaleProcessingJobs(int timeoutMinutes, int limit) {
-        return notificationJobRepository.findStaleProcessingJobs(timeoutMinutes, limit)
-                .stream()
-                .map(NotificationJobEntity::getId)
-                .map(notificationJobRepository::findByIdWithCategory)
-                .flatMap(Optional::stream)
-                .map(notificationJobPersistenceMapper::toDomain)
-                .toList();
+        List<Long> jobIds = notificationJobRepository.findStaleProcessingJobIds(timeoutMinutes, limit);
+        return findJobsByIdsWithCategory(jobIds);
     }
 
-    private @NonNull Stream<Optional<NotificationJobEntity>> fetchPendingNotificationJobs(int limit) {
-        return notificationJobRepository.findPendingJobsForProcessing(limit)
-                .stream()
-                .map(NotificationJobEntity::getId)
-                .map(notificationJobRepository::findByIdWithCategory);
+    @Override
+    public List<NotificationJob> findRetryableFailedJobs(int maxAttempts, int limit) {
+        List<Long> jobIds = notificationJobRepository.findRetryableFailedJobIds(maxAttempts, limit);
+        return findJobsByIdsWithCategory(jobIds);
+    }
+
+    private List<NotificationJob> findJobsByIdsWithCategory(List<Long> jobIds) {
+        if (jobIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<NotificationJobEntity> entities = notificationJobRepository.findAllByIdInWithCategory(jobIds);
+        List<NotificationJob> jobs = new ArrayList<>(entities.size());
+
+        for (NotificationJobEntity entity : entities) {
+            jobs.add(notificationJobPersistenceMapper.toDomain(entity));
+        }
+
+        return jobs;
     }
 }

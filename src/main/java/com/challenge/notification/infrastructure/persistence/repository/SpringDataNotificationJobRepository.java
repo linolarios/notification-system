@@ -9,7 +9,6 @@ import java.util.Optional;
 
 public interface SpringDataNotificationJobRepository extends JpaRepository<NotificationJobEntity, Long> {
 
-
     List<NotificationJobEntity> findTop20ByStatusOrderByCreatedAtAsc(String status);
 
     Optional<NotificationJobEntity> findByCorrelationId(String correlationId);
@@ -26,13 +25,21 @@ public interface SpringDataNotificationJobRepository extends JpaRepository<Notif
             SELECT job
             FROM NotificationJobEntity job
             JOIN FETCH job.category category
+            WHERE job.id IN :ids
+            """)
+    List<NotificationJobEntity> findAllByIdInWithCategory(List<Long> ids);
+
+    @Query("""
+            SELECT job
+            FROM NotificationJobEntity job
+            JOIN FETCH job.category category
             WHERE job.correlationId = :correlationId
             """)
     Optional<NotificationJobEntity> findByCorrelationIdWithCategory(String correlationId);
 
     @Query(
             value = """
-                    SELECT *
+                    SELECT id
                     FROM notification_jobs
                     WHERE status = 'PENDING'
                     ORDER BY created_at ASC
@@ -41,11 +48,11 @@ public interface SpringDataNotificationJobRepository extends JpaRepository<Notif
                     """,
             nativeQuery = true
     )
-    List<NotificationJobEntity> findPendingJobsForProcessing(int limit);
+    List<Long> findPendingJobIdsForProcessing(int limit);
 
     @Query(
             value = """
-                    SELECT *
+                    SELECT id
                     FROM notification_jobs
                     WHERE status = 'PROCESSING'
                       AND locked_at < CURRENT_TIMESTAMP - (:timeoutMinutes * INTERVAL '1 minute')
@@ -55,9 +62,22 @@ public interface SpringDataNotificationJobRepository extends JpaRepository<Notif
                     """,
             nativeQuery = true
     )
-    List<NotificationJobEntity> findStaleProcessingJobs(
+    List<Long> findStaleProcessingJobIds(
             int timeoutMinutes,
             int limit
     );
 
+    @Query(
+            value = """
+                    SELECT id
+                    FROM notification_jobs
+                    WHERE status = 'FAILED'
+                      AND attempt_count < :maxAttempts
+                    ORDER BY updated_at ASC
+                    LIMIT :limit
+                    FOR UPDATE SKIP LOCKED
+                    """,
+            nativeQuery = true
+    )
+    List<Long> findRetryableFailedJobIds(int maxAttempts, int limit);
 }

@@ -14,4 +14,6 @@ public interface NotificationJobRepositoryPort {
     List<NotificationJob> findPendingJobsForProcessing(int limit);
 
     List<NotificationJob> findStaleProcessingJobs(int timeoutMinutes, int limit);
+
+    List<NotificationJob> findRetryableFailedJobs(int maxAttempts, int limit);
 }
