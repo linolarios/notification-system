@@ -10,7 +10,7 @@ spring:
 
 notification:
   worker:
-  enabled: false
+    enabled: false
     batch-size: 20
     fixed-delay-ms: 1000
     stale-timeout-minutes: 5
