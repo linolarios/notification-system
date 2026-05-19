@@ -1,22 +1,15 @@
 package com.challenge.notification.infrastructure.queue;
 
-import com.challenge.notification.config.CorrelationConstants;
 import com.challenge.notification.domain.service.NotificationJobProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(
-        prefix = "notification.queue",
-        name = "processing-mode",
-        havingValue = "database",
-        matchIfMissing = true
-)
+@Conditional(DatabaseProcessingWorkerEnabledCondition.class)
 public class NotificationDatabaseJobWorker {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationDatabaseJobWorker.class);
