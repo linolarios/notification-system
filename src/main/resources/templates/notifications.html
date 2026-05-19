@@ -5,6 +5,7 @@
     <title>Notification System</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="/css/notifications.css">
 </head>
 <body>
@@ -63,6 +64,43 @@
             <div id="logSummary" class="summary"></div>
         </div>
 
+        <div class="log-filters">
+            <div class="form-group">
+                <label for="logCorrelationFilter">Correlation ID</label>
+                <input
+                        id="logCorrelationFilter"
+                        type="search"
+                        placeholder="Search by correlation ID">
+                <div class="helper">
+                    Paste a full correlation ID or type part of one.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="logCategoryFilter">Category</label>
+                <select id="logCategoryFilter">
+                    <option value="">All categories</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="logSortDirection">Created At</label>
+                <select id="logSortDirection">
+                    <option value="desc">Newest first</option>
+                    <option value="asc">Oldest first</option>
+                </select>
+            </div>
+
+            <div class="filter-actions">
+                <button id="applyLogFiltersButton" type="button">
+                    Apply filters
+                </button>
+                <button id="clearLogFiltersButton" type="button" class="secondary-button">
+                    Clear
+                </button>
+            </div>
+        </div>
+
         <div class="table-wrapper">
             <table>
                 <thead>
@@ -82,6 +120,16 @@
                 </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div class="pagination">
+            <button id="previousLogsPageButton" type="button" class="secondary-button">
+                Previous
+            </button>
+            <span id="logsPageInfo" class="pagination-info">Page 1 of 1</span>
+            <button id="nextLogsPageButton" type="button" class="secondary-button">
+                Next
+            </button>
         </div>
     </section>
 </main>

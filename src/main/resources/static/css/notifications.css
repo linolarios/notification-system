@@ -76,7 +76,8 @@ label {
 }
 
 select,
-textarea {
+textarea,
+input {
     width: 100%;
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -222,9 +223,36 @@ th {
     word-break: break-all;
 }
 
+.log-filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 2fr) minmax(180px, 1fr) minmax(180px, 1fr) auto;
+    gap: 16px;
+    align-items: end;
+    margin-bottom: 16px;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+}
+
+
 .empty {
     text-align: center;
     color: var(--muted);
+}
+
+.pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.pagination-info {
+    color: var(--muted);
+    font-size: 14px;
 }
 
 @media (max-width: 720px) {
@@ -233,8 +261,22 @@ th {
         flex-direction: column;
     }
 
-    .actions {
+    .log-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .actions,
+    .pagination,
+    .filter-actions {
         justify-content: stretch;
+    }
+
+    .pagination,
+    .filter-actions {
+        display: flex;
+        gap: 8px;
+        align-self: center;
+        padding-top: 16px;
     }
 
     button {

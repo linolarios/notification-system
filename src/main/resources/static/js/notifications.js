@@ -7,6 +7,17 @@ const submissionResult = document.getElementById('submissionResult');
 const logsTableBody = document.getElementById('logsTableBody');
 const refreshLogsButton = document.getElementById('refreshLogsButton');
 const logSummary = document.getElementById('logSummary');
+const previousLogsPageButton = document.getElementById('previousLogsPageButton');
+const nextLogsPageButton = document.getElementById('nextLogsPageButton');
+const logsPageInfo = document.getElementById('logsPageInfo');
+const logCorrelationFilter = document.getElementById('logCorrelationFilter');
+const logCategoryFilter = document.getElementById('logCategoryFilter');
+const logSortDirection = document.getElementById('logSortDirection');
+const applyLogFiltersButton = document.getElementById('applyLogFiltersButton');
+const clearLogFiltersButton = document.getElementById('clearLogFiltersButton');
+
+const logsPageSize = 5;
+let currentLogsPage = 0;
 
 document.addEventListener('DOMContentLoaded', async () => {
     bindEvents();
@@ -19,7 +30,37 @@ function bindEvents() {
         messageCounter.textContent = messageInput.value.length;
     });
 
-    refreshLogsButton.addEventListener('click', loadLogs);
+    refreshLogsButton.addEventListener('click', () => {
+        loadLogs(currentLogsPage);
+    });
+
+    previousLogsPageButton.addEventListener('click', () => {
+        if (currentLogsPage > 0) {
+            loadLogs(currentLogsPage - 1);
+        }
+    });
+
+    nextLogsPageButton.addEventListener('click', () => {
+        loadLogs(currentLogsPage + 1);
+    });
+
+    applyLogFiltersButton.addEventListener('click', () => {
+        loadLogs(0);
+    });
+
+    clearLogFiltersButton.addEventListener('click', () => {
+        logCorrelationFilter.value = '';
+        logCategoryFilter.value = '';
+        logSortDirection.value = 'desc';
+        loadLogs(0);
+    });
+
+    logCorrelationFilter.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            loadLogs(0);
+        }
+    });
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -38,17 +79,24 @@ async function loadCategories() {
         const categories = await response.json();
 
         categorySelect.innerHTML = '<option value="">Select a category</option>';
+        logCategoryFilter.innerHTML = '<option value="">All categories</option>';
 
         for (const category of categories) {
-            const option = document.createElement('option');
-            option.value = category.code;
-            option.textContent = category.name;
-            categorySelect.appendChild(option);
+            categorySelect.appendChild(createCategoryOption(category));
+            logCategoryFilter.appendChild(createCategoryOption(category));
         }
     } catch (error) {
         categorySelect.innerHTML = '<option value="">Unable to load categories</option>';
+        logCategoryFilter.innerHTML = '<option value="">Unable to load categories</option>';
         showMessage(error.message, 'error');
     }
+}
+
+function createCategoryOption(category) {
+    const option = document.createElement('option');
+    option.value = category.code;
+    option.textContent = category.name;
+    return option;
 }
 
 async function submitNotification() {
@@ -94,7 +142,7 @@ async function submitNotification() {
         messageInput.value = '';
         messageCounter.textContent = '0';
 
-        setTimeout(loadLogs, 1200);
+        setTimeout(() => loadLogs(0), 1200);
     } catch (error) {
         showMessage(error.message, 'error');
     } finally {
@@ -102,22 +150,28 @@ async function submitNotification() {
     }
 }
 
-async function loadLogs() {
+async function loadLogs(pageNumber = currentLogsPage) {
     logsTableBody.innerHTML = `
         <tr>
             <td colspan="7" class="empty">Loading logs...</td>
         </tr>
     `;
 
+    setPaginationControlsDisabled(true);
+
     try {
-        const response = await fetch('/api/notification-logs?page=0&size=20');
+        const response = await fetch(buildLogsUrl(pageNumber));
 
         if (!response.ok) {
             throw new Error('Failed to load notification logs');
         }
 
         const page = await response.json();
+
+        currentLogsPage = page.page ?? pageNumber;
+
         renderLogs(page.content || []);
+        renderLogsPagination(page);
 
         logSummary.textContent = `${page.totalElements ?? 0} total log records`;
     } catch (error) {
@@ -126,14 +180,39 @@ async function loadLogs() {
                 <td colspan="7" class="empty">${escapeHtml(error.message)}</td>
             </tr>
         `;
+
+        logSummary.textContent = '';
+        logsPageInfo.textContent = 'Page - of -';
+        setPaginationControlsDisabled(true);
     }
+}
+
+function buildLogsUrl(pageNumber) {
+    const params = new URLSearchParams({
+        page: String(pageNumber),
+        size: String(logsPageSize),
+        sortDirection: logSortDirection.value || 'desc'
+    });
+
+    const correlationId = logCorrelationFilter.value.trim();
+    const category = logCategoryFilter.value;
+
+    if (correlationId) {
+        params.append('correlationId', correlationId);
+    }
+
+    if (category) {
+        params.append('category', category);
+    }
+
+    return `/api/notification-logs?${params.toString()}`;
 }
 
 function renderLogs(logs) {
     if (!logs.length) {
         logsTableBody.innerHTML = `
             <tr>
-                <td colspan="7" class="empty">No notification logs yet.</td>
+                <td colspan="7" class="empty">No notification logs found.</td>
             </tr>
         `;
         return;
@@ -156,6 +235,29 @@ function renderLogs(logs) {
             <td>${escapeHtml(log.errorMessage || '-')}</td>
         </tr>
     `).join('');
+}
+
+function renderLogsPagination(page) {
+    const totalPages = page.totalPages ?? 0;
+    const totalElements = page.totalElements ?? 0;
+    const isEmpty = totalElements === 0 || totalPages === 0;
+
+    if (isEmpty) {
+        logsPageInfo.textContent = 'Page 0 of 0';
+        setPaginationControlsDisabled(true);
+        return;
+    }
+
+    const displayPage = currentLogsPage + 1;
+
+    logsPageInfo.textContent = `Page ${displayPage} of ${totalPages}`;
+    previousLogsPageButton.disabled = page.first ?? currentLogsPage === 0;
+    nextLogsPageButton.disabled = page.last ?? currentLogsPage >= totalPages - 1;
+}
+
+function setPaginationControlsDisabled(disabled) {
+    previousLogsPageButton.disabled = disabled;
+    nextLogsPageButton.disabled = disabled;
 }
 
 function showMessage(message, type) {
