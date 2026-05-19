@@ -1,10 +1,6 @@
 package com.challenge.notification.domain.service;
 
-import com.challenge.notification.domain.model.NotificationChannelCode;
-import com.challenge.notification.domain.model.NotificationDeliveryAttempt;
-import com.challenge.notification.domain.model.NotificationMessage;
-import com.challenge.notification.domain.model.NotificationSendResult;
-import com.challenge.notification.domain.model.NotificationSubscriber;
+import com.challenge.notification.domain.model.*;
 import com.challenge.notification.domain.port.NotificationLogRepositoryPort;
 import com.challenge.notification.domain.port.NotificationSender;
 import org.slf4j.Logger;
@@ -49,20 +45,19 @@ public class NotificationDispatcher {
             NotificationSubscriber subscriber,
             NotificationChannelCode channel
     ) {
+        NotificationDeliveryAttempt deliveryAttempt;
         try {
             NotificationSender sender = notificationSenderRegistry.getSender(channel);
             NotificationSendResult sendResult = sender.send(message, subscriber);
 
-            NotificationDeliveryAttempt deliveryAttempt = sendResult.isSuccess()
+            deliveryAttempt = sendResult.isSuccess()
                     ? deliveryAttemptFactory.sent(message, subscriber, channel, sendResult)
                     : deliveryAttemptFactory.failed(
-                            message,
-                            subscriber,
-                            channel,
-                            sendResult.getErrorMessage().orElse("Unknown notification sending error")
-                    );
-
-            notificationLogRepositoryPort.save(deliveryAttempt);
+                    message,
+                    subscriber,
+                    channel,
+                    sendResult.getErrorMessage().orElse("Unknown notification sending error")
+            );
         } catch (Exception exception) {
             log.warn(
                     "Notification delivery failed. messageId : {} subscriberId : {} channel : {}",
@@ -72,14 +67,13 @@ public class NotificationDispatcher {
                     exception
             );
 
-            NotificationDeliveryAttempt failedAttempt = deliveryAttemptFactory.failed(
+            deliveryAttempt = deliveryAttemptFactory.failed(
                     message,
                     subscriber,
                     channel,
                     exception.getMessage()
             );
-
-            notificationLogRepositoryPort.save(failedAttempt);
         }
+        notificationLogRepositoryPort.save(deliveryAttempt);
     }
 }

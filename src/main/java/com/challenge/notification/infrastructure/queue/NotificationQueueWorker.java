@@ -8,16 +8,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
-@ConditionalOnProperty(
-        prefix = "notification.queue",
-        name = "processing-mode",
-        havingValue = "memory"
-)
+@Conditional(MemoryProcessingWorkerEnabledCondition.class)
 public class NotificationQueueWorker {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationQueueWorker.class);
@@ -45,26 +43,21 @@ public class NotificationQueueWorker {
     @Scheduled(fixedDelayString = "${notification.worker.fixed-delay-ms:1000}")
     public void pollQueue() {
         for (int i = 0; i < batchSize; i++) {
-            boolean processed = notificationQueue.poll()
-                    .map(this::processJobSafely)
-                    .orElse(false);
+            Optional<NotificationJob> polledJob = notificationQueue.poll();
 
-            if (!processed) {
+            if (polledJob.isEmpty()) {
                 return;
             }
+            processJobSafely(polledJob.get());
         }
     }
 
-
-    private boolean processJobSafely(NotificationJob job) {
+    private void processJobSafely(NotificationJob job) {
         try {
             MDC.put(CorrelationConstants.CORRELATION_ID_MDC_KEY, job.getCorrelationId());
             notificationJobProcessor.process(job);
-            return true;
         } catch (Exception exception) {
-            log.error("Unexpected worker failure while processing job. jobId={}", job.getId(), exception
-            );
-            return true;
+            log.error("Unexpected worker failure while processing job. jobId={}", job.getId(), exception);
         } finally {
             MDC.remove(CorrelationConstants.CORRELATION_ID_MDC_KEY);
         }

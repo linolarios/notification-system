@@ -1,4 +1,4 @@
-package com.challenge.notification.web.controller.controller;
+package com.challenge.notification.web.controller;
 
 import com.challenge.notification.application.NotificationQueryService;
 import com.challenge.notification.dto.response.CategoryResponse;

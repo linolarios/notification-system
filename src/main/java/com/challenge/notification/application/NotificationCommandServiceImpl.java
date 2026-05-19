@@ -8,7 +8,6 @@ import com.challenge.notification.domain.model.NotificationMessage;
 import com.challenge.notification.domain.port.CategoryRepositoryPort;
 import com.challenge.notification.domain.port.MessageRepositoryPort;
 import com.challenge.notification.domain.port.NotificationJobRepositoryPort;
-import com.challenge.notification.domain.port.NotificationQueue;
 import com.challenge.notification.dto.request.CreateNotificationRequest;
 import com.challenge.notification.dto.response.NotificationAcceptedResponse;
 import org.jspecify.annotations.NonNull;

@@ -11,7 +11,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Repository
 public class JpaNotificationJobRepositoryAdapter implements NotificationJobRepositoryPort {
@@ -80,12 +83,19 @@ public class JpaNotificationJobRepositoryAdapter implements NotificationJobRepos
         if (jobIds.isEmpty()) {
             return List.of();
         }
-
         List<NotificationJobEntity> entities = notificationJobRepository.findAllByIdInWithCategory(jobIds);
+
+        Map<Long, NotificationJobEntity> entitiesById = entities.stream()
+                .collect(Collectors.toMap(NotificationJobEntity::getId, Function.identity()));
+
         List<NotificationJob> jobs = new ArrayList<>(entities.size());
 
-        for (NotificationJobEntity entity : entities) {
-            jobs.add(notificationJobPersistenceMapper.toDomain(entity));
+        for (Long jobId : jobIds) {
+            NotificationJobEntity entity = entitiesById.get(jobId);
+
+            if (entity != null) {
+                jobs.add(notificationJobPersistenceMapper.toDomain(entity));
+            }
         }
 
         return jobs;

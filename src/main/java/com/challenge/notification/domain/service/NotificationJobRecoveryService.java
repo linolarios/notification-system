@@ -25,7 +25,7 @@ public class NotificationJobRecoveryService {
      *
      * @param timeoutMinutes
      * @param batchSize
-     * @return
+     * @return number of stale jobs recovered
      */
     @Transactional
     public int recoverStaleProcessingJobs(int timeoutMinutes, int batchSize) {

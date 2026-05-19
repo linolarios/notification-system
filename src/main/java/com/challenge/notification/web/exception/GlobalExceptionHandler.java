@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 exception.getMessage(),
                 request.getRequestURI(),
-                List.of(new FieldErrorResponse("category","Wrong category"))
+                List.of(new FieldErrorResponse("category", "Category is not supported or is inactive"))
         );
 
         return ResponseEntity.badRequest()
@@ -144,11 +144,11 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .stream()
                 .sorted(Comparator.comparing(FieldError::getField))
-                .map(this::createFiledErrorResponse)
+                .map(this::createFieldErrorResponse)
                 .toList();
     }
 
-    private FieldErrorResponse createFiledErrorResponse(FieldError fieldError) {
+    private FieldErrorResponse createFieldErrorResponse(FieldError fieldError) {
         return new FieldErrorResponse(
                 fieldError.getField(),
                 fieldError.getDefaultMessage()

@@ -27,7 +27,6 @@ spring:
 
 notification:
   queue:
-    type: database
     capacity: 1000
     processing-mode: database # Supported values: database or memory. Database mode processes persisted notification jobs
 
