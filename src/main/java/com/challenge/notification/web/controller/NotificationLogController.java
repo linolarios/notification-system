@@ -4,6 +4,7 @@ import com.challenge.notification.application.NotificationQueryService;
 import com.challenge.notification.dto.response.NotificationLogResponse;
 import com.challenge.notification.dto.response.PagedResponse;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,20 +24,19 @@ public class NotificationLogController {
     public PagedResponse<NotificationLogResponse> getNotificationLogs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) String correlationId
+            @RequestParam(required = false) String correlationId,
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "desc") String sortDirection
     ) {
         int sanitizedPage = Math.max(page, 0);
         int sanitizedSize = Math.clamp(size, 1, MAX_PAGE_SIZE);
 
-        PageRequest pageRequest = PageRequest.of(sanitizedPage, sanitizedSize);
+        Sort.Direction direction = "asc".equalsIgnoreCase(sortDirection)
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
 
-        if (correlationId != null && !correlationId.isBlank()) {
-            return notificationQueryService.getNotificationLogsByCorrelationId(
-                    correlationId,
-                    pageRequest
-            );
-        }
+        PageRequest pageRequest = PageRequest.of(sanitizedPage, sanitizedSize, Sort.by(direction, "createdAt"));
 
-        return notificationQueryService.getNotificationLogs(pageRequest);
+        return notificationQueryService.searchNotificationLogs(correlationId, category, pageRequest);
     }
 }

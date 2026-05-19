@@ -78,6 +78,27 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
     }
 
     /**
+     * Searches notification logs using optional filters.
+     *
+     * <p>Correlation ID supports partial matching, while category uses exact catalog-code
+     * matching. Pagination and sorting are delegated to the repository through the supplied
+     * {@link Pageable}.</p>
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public PagedResponse<NotificationLogResponse> searchNotificationLogs(String correlationId, String category, Pageable pageable) {
+        String correlationIdPattern = toLikePattern(correlationId);
+        String normalizedCategory = normalizeFilter(category);
+
+
+        Page<NotificationLogResponse> logResponsePage = notificationLogRepository
+                .searchLogs(correlationIdPattern, normalizedCategory, pageable)
+                .map(this::toNotificationLogResponse);
+
+        return PagedResponse.fromPage(logResponsePage);
+    }
+
+    /**
      * Returns the current processing state for a notification job.
      *
      * <p>The response is used by clients to track asynchronous processing after a
@@ -168,5 +189,23 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
                 entity.getCode(),
                 entity.getName()
         );
+    }
+
+    private static String normalizeFilter(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        return value.strip();
+    }
+
+    private static String toLikePattern(String value) {
+        String normalizedValue = normalizeFilter(value);
+
+        if (normalizedValue == null) {
+            return null;
+        }
+
+        return "%" + normalizedValue.toLowerCase() + "%";
     }
 }

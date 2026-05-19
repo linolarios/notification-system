@@ -12,6 +12,8 @@ public interface NotificationQueryService {
 
     PagedResponse<NotificationLogResponse> getNotificationLogsByCorrelationId(String correlationId, Pageable pageable);
 
+    PagedResponse<NotificationLogResponse> searchNotificationLogs(String correlationId, String category, Pageable pageable);
+
     NotificationJobResponse getNotificationJob(Long jobId);
 
     NotificationJobResponse getNotificationJobByCorrelationId(String correlationId);
