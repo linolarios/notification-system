@@ -7,8 +7,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SpringDataNotificationLogRepository extends JpaRepository<NotificationLogEntity, Long> {
 
+    /**
+     * Returns notification logs ordered newest first for UI history and audit views.
+     */
     Page<NotificationLogEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
+    /**
+     * Returns notification logs for a single correlation ID ordered newest first.
+     *
+     * <p>This is useful for tracing all delivery attempts created from one submitted
+     * notification request.</p>
+     */
     Page<NotificationLogEntity> findByCorrelationIdOrderByCreatedAtDesc(String correlationId, Pageable pageable);
 }
 

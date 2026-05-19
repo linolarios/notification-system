@@ -69,6 +69,13 @@ public class JpaNotificationJobRepositoryAdapter implements NotificationJobRepos
         return findJobsByIdsWithCategory(jobIds);
     }
 
+    /**
+     * Loads full notification job entities after a worker query has selected their IDs.
+     *
+     * <p>The worker queries use native SQL for locking. This second query fetches the
+     * complete JPA entities with category data initialized so they can be safely mapped
+     * to domain objects.</p>
+     */
     private List<NotificationJob> findJobsByIdsWithCategory(List<Long> jobIds) {
         if (jobIds.isEmpty()) {
             return List.of();

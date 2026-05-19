@@ -18,6 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+/**
+ * Application service responsible for accepting notification commands.
+ *
+ * <p>This service coordinates validation and persistence for new notification requests.
+ * It creates the records required for asynchronous processing but does not perform
+ * notification delivery directly.</p>
+ */
 @Service
 public class NotificationCommandServiceImpl implements NotificationCommandService {
 
@@ -35,6 +42,13 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
         this.notificationJobRepositoryPort = notificationJobRepositoryPort;
     }
 
+    /**
+     * Creates a domain notification message from the incoming request.
+     *
+     * <p>The correlation ID is taken from the logging MDC when available so records created
+     * during the same request can be traced together. If no correlation ID is present, a new
+     * one is generated to preserve traceability for asynchronous processing.</p>
+     */
     private static @NonNull NotificationMessage getNotificationMessage(CreateNotificationRequest request, CategoryCode categoryCode) {
         String correlationId = MDC.get(CorrelationConstants.CORRELATION_ID_MDC_KEY);
 
@@ -49,6 +63,12 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
         );
     }
 
+    /**
+     * Creates a notification message and a PENDING notification job in one transaction.
+     *
+     * <p>The method intentionally stops after persistence. Actual delivery is delegated to
+     * background workers, which process the created job asynchronously.</p>
+     */
     @Override
     @Transactional
     public NotificationAcceptedResponse createNotification(CreateNotificationRequest request) {
@@ -65,6 +85,13 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
         return NotificationAcceptedResponse.accepted(savedNotificationJob.getCorrelationId(), savedMessage.getId(), savedNotificationJob.getId());
     }
 
+    /**
+     * Converts and validates the requested category.
+     *
+     * <p>A category must be both syntactically supported by the domain enum and active in
+     * the persistence catalog. Unsupported, unknown, or inactive categories are exposed to
+     * callers as {@link CategoryNotFoundException}.</p>
+     */
     private @NonNull CategoryCode getCategoryCode(CreateNotificationRequest request) {
         String category = request.category();
         CategoryCode categoryCode;

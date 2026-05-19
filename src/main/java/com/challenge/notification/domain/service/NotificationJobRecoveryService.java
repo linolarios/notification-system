@@ -20,6 +20,13 @@ public class NotificationJobRecoveryService {
         this.notificationJobRepositoryPort = notificationJobRepositoryPort;
     }
 
+    /**
+     * Resets jobs that have been in 'processing' state for longer than the specified timeout.
+     *
+     * @param timeoutMinutes
+     * @param batchSize
+     * @return
+     */
     @Transactional
     public int recoverStaleProcessingJobs(int timeoutMinutes, int batchSize) {
         List<NotificationJob> staleJobs =

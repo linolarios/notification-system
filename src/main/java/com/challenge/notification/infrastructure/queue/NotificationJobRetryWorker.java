@@ -33,6 +33,12 @@ public class NotificationJobRetryWorker {
         this.batchSize = batchSize;
     }
 
+    /**
+     * Periodically retries failed notification jobs.
+     *
+     * <p>Exceptions are caught so that one failed retry cycle does not stop future
+     * scheduled executions.</p>
+     */
     @Scheduled(fixedDelayString = "${notification.worker.retry-fixed-delay-ms:60000}")
     public void retryFailedJobs() {
         try {

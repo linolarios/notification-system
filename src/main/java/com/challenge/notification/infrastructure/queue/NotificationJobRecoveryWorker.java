@@ -33,6 +33,12 @@ public class NotificationJobRecoveryWorker {
         this.batchSize = batchSize;
     }
 
+    /**
+     * Periodically recovers stale notification jobs that have been stuck in processing state.
+     *
+     * <p>Exceptions are caught so that one failed recovery cycle does not stop future
+     * scheduled executions.</p>
+     */
     @Scheduled(fixedDelayString = "${notification.worker.recovery-fixed-delay-ms:30000}")
     public void recoverStaleJobs() {
         try {

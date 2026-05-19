@@ -9,10 +9,14 @@ import java.util.Optional;
 
 public interface SpringDataNotificationJobRepository extends JpaRepository<NotificationJobEntity, Long> {
 
-    List<NotificationJobEntity> findTop20ByStatusOrderByCreatedAtAsc(String status);
-
     Optional<NotificationJobEntity> findByCorrelationId(String correlationId);
 
+    /**
+     * Fetches notification jobs with their category relationship initialized.
+     *
+     * <p>This avoids lazy-loading issues when mapping JPA entities back to domain models
+     * outside the repository boundary.</p>
+     */
     @Query("""
             SELECT job
             FROM NotificationJobEntity job
@@ -29,14 +33,12 @@ public interface SpringDataNotificationJobRepository extends JpaRepository<Notif
             """)
     List<NotificationJobEntity> findAllByIdInWithCategory(List<Long> ids);
 
-    @Query("""
-            SELECT job
-            FROM NotificationJobEntity job
-            JOIN FETCH job.category category
-            WHERE job.correlationId = :correlationId
-            """)
-    Optional<NotificationJobEntity> findByCorrelationIdWithCategory(String correlationId);
-
+    /**
+     * Finds pending job IDs for worker processing using row-level locking.
+     *
+     * <p>{@code FOR UPDATE SKIP LOCKED} allows multiple application instances or worker
+     * threads to safely poll pending jobs without processing the same row twice.</p>
+     */
     @Query(
             value = """
                     SELECT id
@@ -50,6 +52,12 @@ public interface SpringDataNotificationJobRepository extends JpaRepository<Notif
     )
     List<Long> findPendingJobIdsForProcessing(int limit);
 
+    /**
+     * Finds PROCESSING jobs whose lock is older than the configured timeout.
+     *
+     * <p>These jobs are candidates for recovery because the worker that locked them may
+     * have crashed or stopped before completing the job.</p>
+     */
     @Query(
             value = """
                     SELECT id
@@ -62,11 +70,14 @@ public interface SpringDataNotificationJobRepository extends JpaRepository<Notif
                     """,
             nativeQuery = true
     )
-    List<Long> findStaleProcessingJobIds(
-            int timeoutMinutes,
-            int limit
-    );
+    List<Long> findStaleProcessingJobIds(int timeoutMinutes, int limit);
 
+    /**
+     * Finds FAILED jobs that have not reached the maximum retry attempt count.
+     *
+     * <p>The query locks selected rows so concurrent retry workers do not retry the same
+     * failed job simultaneously.</p>
+     */
     @Query(
             value = """
                     SELECT id

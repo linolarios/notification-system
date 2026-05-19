@@ -20,6 +20,13 @@ public class NotificationJobRetryService {
         this.notificationJobRepositoryPort = notificationJobRepositoryPort;
     }
 
+    /**
+     * Retries failed notification jobs up to a specified maximum number of attempts.
+     *
+     * @param maxAttempts The maximum number of attempts allowed for each job.
+     * @param batchSize   The number of jobs to process in each batch.
+     * @return The number of jobs retried.
+     */
     @Transactional
     public int retryFailedJobs(int maxAttempts, int batchSize) {
         List<NotificationJob> failedJobs =

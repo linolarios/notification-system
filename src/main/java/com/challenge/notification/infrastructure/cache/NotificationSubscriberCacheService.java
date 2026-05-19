@@ -14,6 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Service for managing notification subscriber-related caching operations.
+ *
+ * <p>This service provides methods to retrieve user category subscriptions and channel preferences
+ * from the database and cache them for efficient retrieval. It also checks for the existence of
+ * user category subscriptions and channel preferences by their identifiers.</p>
+ */
 @Service
 public class NotificationSubscriberCacheService {
 

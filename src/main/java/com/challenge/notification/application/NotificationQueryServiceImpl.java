@@ -16,6 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Application service responsible for notification read/query use cases.
+ *
+ * <p>This service assembles API response DTOs for notification logs, job status,
+ * categories, and channels. Read-heavy catalog data is resolved through cache services,
+ * while operational data, such as notification jobs and logs, is read directly from
+ * persistence so clients receive the latest processing state.</p>
+ */
 @Service
 public class NotificationQueryServiceImpl implements NotificationQueryService {
 
@@ -50,6 +58,12 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
         return PagedResponse.fromPage(logResponsePage);
     }
 
+    /**
+     * Returns notification delivery logs for audit/history views.
+     *
+     * <p>Logs are ordered newest first by the repository so the UI can show the most recent
+     * delivery activity at the top of the history table.</p>
+     */
     @Override
     @Transactional(readOnly = true)
     public PagedResponse<NotificationLogResponse> getNotificationLogsByCorrelationId(
@@ -63,6 +77,12 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
         return PagedResponse.fromPage(logResponsePage);
     }
 
+    /**
+     * Returns the current processing state for a notification job.
+     *
+     * <p>The response is used by clients to track asynchronous processing after a
+     * notification request has been accepted.</p>
+     */
     @Override
     @Transactional(readOnly = true)
     public NotificationJobResponse getNotificationJob(Long jobId) {
@@ -71,6 +91,12 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
                 .orElseThrow(() -> new IllegalArgumentException("Notification job not found: " + jobId));
     }
 
+    /**
+     * Returns the notification job associated with a correlation ID.
+     *
+     * <p>This provides an alternate lookup path when clients track requests by correlation
+     * ID instead of the generated job ID.</p>
+     */
     @Override
     @Transactional(readOnly = true)
     public NotificationJobResponse getNotificationJobByCorrelationId(String correlationId) {
@@ -81,6 +107,12 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
                 ));
     }
 
+    /**
+     * Returns active notification categories for API clients and UI dropdowns.
+     *
+     * <p>Categories are read through a cache service because catalog data is read frequently
+     * and changes rarely.</p>
+     */
     @Override
     @Transactional(readOnly = true)
     public List<CategoryResponse> getActiveCategories() {
@@ -90,6 +122,12 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
                 .toList();
     }
 
+    /**
+     * Returns active notification channels for API clients.
+     *
+     * <p>Channels are read through a cache service because catalog data is read frequently
+     * and changes rarely.</p>
+     */
     @Override
     @Transactional(readOnly = true)
     public List<NotificationChannelResponse> getActiveNotificationChannels() {

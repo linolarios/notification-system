@@ -97,6 +97,13 @@ public class NotificationJobProcessor {
         }
     }
 
+    /**
+     * Safely marks a notification job as failed, handling different job statuses.
+     *
+     * @param job         the notification job to mark as failed
+     * @param errorMessage the error message to associate with the failure
+     * @return the updated notification job
+     */
     private NotificationJob markJobAsFailedSafely(NotificationJob job, String errorMessage) {
         if (job.getStatus() == com.challenge.notification.domain.model.NotificationJobStatus.PROCESSING) {
             return job.markFailed(errorMessage);

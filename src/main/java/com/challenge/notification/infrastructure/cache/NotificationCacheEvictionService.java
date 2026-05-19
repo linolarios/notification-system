@@ -3,6 +3,13 @@ package com.challenge.notification.infrastructure.cache;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service for managing cache eviction operations.
+ *
+ * <p>This service provides methods to evict cached data related to active categories,
+ * notification channels, and user subscriptions. It also includes a method to evict
+ * all cached data at once.</p>
+ */
 @Service
 public class NotificationCacheEvictionService {
 

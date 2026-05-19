@@ -8,6 +8,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Service for managing notification channel-related caching operations.
+ *
+ * <p>This service provides methods to retrieve active notification channels from the database
+ * and cache them for efficient retrieval. It also checks for the existence of active
+ * notification channels by their code.</p>
+ */
 @Service
 public class NotificationChannelCacheService {
 

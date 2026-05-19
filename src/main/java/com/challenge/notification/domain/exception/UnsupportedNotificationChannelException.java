@@ -2,6 +2,9 @@ package com.challenge.notification.domain.exception;
 
 import com.challenge.notification.domain.model.NotificationChannelCode;
 
+/**
+ * Raised when no notification sender is registered for the requested channel.
+ */
 public class UnsupportedNotificationChannelException extends RuntimeException {
 
     public UnsupportedNotificationChannelException(NotificationChannelCode channel) {

@@ -36,6 +36,12 @@ public class NotificationQueueWorker {
         this.batchSize = batchSize;
     }
 
+    /**
+     * Periodically polls the notification queue for jobs and processes them.
+     *
+     * <p>Exceptions are caught so that one failed polling cycle does not stop future
+     * scheduled executions.</p>
+     */
     @Scheduled(fixedDelayString = "${notification.worker.fixed-delay-ms:1000}")
     public void pollQueue() {
         for (int i = 0; i < batchSize; i++) {

@@ -8,6 +8,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Service for managing category-related caching operations.
+ *
+ * <p>This service provides methods to retrieve active categories from the database
+ * and cache them for efficient retrieval. It also checks for the existence of active
+ * categories by their code.</p>
+ */
 @Service
 public class CategoryCacheService {
 

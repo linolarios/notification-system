@@ -14,6 +14,12 @@ public class NotificationSenderRegistry {
 
     private final Map<NotificationChannelCode, NotificationSender> sendersByChannel;
 
+    /**
+     * Builds a registry of notification senders keyed by their supported channel.
+     *
+     * <p>Exactly one sender is allowed per channel. Duplicate senders are treated as an
+     * application configuration error and fail fast during startup.</p>
+     */
     public NotificationSenderRegistry(List<NotificationSender> notificationSenders) {
         this.sendersByChannel = new EnumMap<>(NotificationChannelCode.class);
 
@@ -31,6 +37,13 @@ public class NotificationSenderRegistry {
         }
     }
 
+    /**
+     * Returns the sender responsible for the requested notification channel.
+     *
+     * @param channel notification channel to dispatch through
+     * @return sender implementation for the channel
+     * @throws UnsupportedNotificationChannelException when no sender is registered for the channel
+     */
     public NotificationSender getSender(NotificationChannelCode channel) {
         NotificationSender sender = sendersByChannel.get(channel);
 

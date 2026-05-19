@@ -26,6 +26,12 @@ public class NotificationDatabaseJobWorker {
         this.batchSize = batchSize;
     }
 
+    /**
+     * Periodically processes pending notification jobs from the database.
+     *
+     * <p>Exceptions are caught so that one failed polling cycle does not stop future
+     * scheduled executions.</p>
+     */
     @Scheduled(fixedDelayString = "${notification.worker.fixed-delay-ms:1000}")
     public void processPendingJobs() {
         try {
